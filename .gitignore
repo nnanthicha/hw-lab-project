@@ -1,7 +1,6 @@
-*/*.cache
-*/*.gen
-*/*.hw
-*/*.ip_user_files
-*/*.runs
-*/*.sims
-*/*.xpr
+*.cache/
+*.runs/
+*.sim/
+*.hw/
+*.ip_user_files/
+*.xpr
