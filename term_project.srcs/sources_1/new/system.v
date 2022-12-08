@@ -21,6 +21,8 @@
 
 
 module system(
+    output wire [3:0] vgaRed, vgaGreen, vgaBlue,
+    output wire Hsync, Vsync,
     output wire RsTx, 
     input wire RsRx,
     input btnC,
@@ -48,6 +50,7 @@ module system(
     
     reg state;
     reg [31:0] data_num;
+    reg [39:0] data_str;
     reg [7:0] data_op;
     reg [2:0] counter;
     initial begin
@@ -59,6 +62,7 @@ module system(
         cal_en =0;
     end
     strToInt s(data_num, value_in);
+    IntToStr i(result, data_str);
     
     always @(posedge baud) begin
         if (en) en = 0;
@@ -85,11 +89,11 @@ module system(
                 end
                 1: begin
                     case(data_op)
-                        8'h2B: op = 2'b00;
-                        8'h2D: op = 2'b01;
-                        8'h2A: op = 2'b10;
-                        8'h2F: op = 2'b11;
-                        8'h3D: return = 1;
+                        8'h2B: op = 2'b00; // +
+                        8'h2D: op = 2'b01; // -
+                        8'h2A: op = 2'b10; // *
+                        8'h2F: op = 2'b11; // /
+                        8'h3D: return = 1; // =
                     endcase
                     state = 0;
                     cal_en = 1;
@@ -98,4 +102,28 @@ module system(
         end
         last_rec = received;
     end
+    
+    // check input from UART
+    reg [3:0] num3,num2,num1,num0;
+    wire an0,an1,an2,an3;
+    assign an={an3,an2,an1,an0};
+    
+    always @(*) begin
+        case(state)
+            0: begin
+                num3=value_in/1000;
+                num2=(value_in/100)%10;
+                num1=(value_in/10)%10;
+                num0=value_in%10;
+            end
+            1: begin
+                num3=0;
+                num2=0;
+                num1=op[1];
+                num0=op[0];
+            end
+        endcase
+    end
+    quadSevenSeg q7seg(seg,dp,an0,an1,an2,an3,num0,num1,num2,num3,baud);
+    
 endmodule
