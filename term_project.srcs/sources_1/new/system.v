@@ -37,7 +37,7 @@ module system(
     uart_tx transmitter(baud, data_in, en, sent, RsTx);
     
     wire reset;
-    siglePulser sp(reset, btnC, baud);
+    singlePulser sp(reset, btnC, baud);
     
     reg signed [31:0] value_in;
     reg [1:0] op;
