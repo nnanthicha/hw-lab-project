@@ -21,6 +21,9 @@
 
 
 module system(
+    output [6:0] seg,
+    output dp,
+    output [3:0] an,
     output wire [3:0] vgaRed, vgaGreen, vgaBlue,
     output wire Hsync, Vsync,
     output wire RsTx, 
@@ -71,6 +74,7 @@ module system(
             if (data_in != 8'hFF) en = 1;
             case(state)
                 0: begin
+                    return = 0;
                     cal_en = 0;
                     if(data_out >= 8'h30 && data_out <= 8'h39) begin
                         case(counter)
@@ -104,26 +108,57 @@ module system(
     end
     
     // check input from UART
+//    reg [3:0] num3,num2,num1,num0;
+//    wire an0,an1,an2,an3;
+//    assign an={an3,an2,an1,an0};
+    
+//    always @(*) begin
+//        case(state)
+//            0: begin
+//                num3=value_in/1000;
+//                num2=(value_in/100)%10;
+//                num1=(value_in/10)%10;
+//                num0=value_in%10;
+//            end
+//            1: begin
+//                num3=0;
+//                num2=0;
+//                num1=op[1];
+//                num0=op[0];
+//            end
+//        endcase
+//    end
+//    quadSevenSeg q7seg(seg,dp,an0,an1,an2,an3,num0,num1,num2,num3,baud);
+    
+    // output 7 seg
     reg [3:0] num3,num2,num1,num0;
+    reg [3:0] dots;
+    wire neg;
+    wire res_pos;
     wire an0,an1,an2,an3;
     assign an={an3,an2,an1,an0};
+    assign neg = (result<0);
+    assign res_pos = (neg) ? -res_pos: result;
     
-    always @(*) begin
-        case(state)
+    always @(posedge return) begin
+        case(overflow)
             0: begin
-                num3=value_in/1000;
-                num2=(value_in/100)%10;
-                num1=(value_in/10)%10;
-                num0=value_in%10;
+                num3=res_pos/1000;
+                num2=(res_pos/100)%10;
+                num1=(res_pos/10)%10;
+                num0=res_pos%10;
+                if(neg) dots=4'b0111;
+                else dots=4'b1111;
             end
             1: begin
-                num3=0;
-                num2=0;
-                num1=op[1];
-                num0=op[0];
+                num2=4'b1111;
+                num1=4'b1010;
+                num0=4'b1111;
+                dots=4'b1111;
             end
         endcase
+        
     end
-    quadSevenSeg q7seg(seg,dp,an0,an1,an2,an3,num0,num1,num2,num3,baud);
     
+    quadSevenSeg q7seg(seg,dp,an0,an1,an2,an3,num0,num1,num2,num3,baud,dots);
 endmodule
