@@ -21,39 +21,49 @@
 
 
 module calculator(
+    input signed [31:0] start_val,
     input signed [31:0] value_in,
     input [1:0] op,
     input reset,
-    input return,
     input enable,
     input clk,
     output reg signed [31:0] result,
-    output wire overflow
+    output reg overflow
     );
-    reg state; // 0 - calculate, 1 - return result
-    reg signed [31:0] A;
-    wire signed [31:0] S;
+    reg signed [31:0] prev;
+    reg signed [31:0] c1, c2, check;
     
-    initial
-        A = 0;
+    initial begin 
+        prev = 0;
+        overflow = 0;
+    end
     always @(posedge clk)
     begin
-        state = enable;
-        if(return) begin
-            result = S;
-            state = 0;
-        end
-        if(reset) begin
-            state = 0;
-            A = 0;
+        if(reset) begin 
+            prev = 0; 
             result = 0;
+            overflow = 0;
         end
-        else begin
-            if (state)
-                A = S;
+        else if(enable) begin
+            prev = prev + start_val;
+            case(op)
+                2'b00: result = prev + value_in; // +
+                2'b01: result = prev - value_in; // -
+                2'b10: begin // *
+                   result = prev * value_in;
+                   c1 = (prev<0) ? -prev : prev;
+                   c2 = (value_in<0) ? -value_in : value_in;
+                   check = c1 * c2;
+                   if(c2 != 0 && check < c1) overflow=1;
+                end
+                2'b11: begin // /
+                    if(value_in == 0) overflow=1;
+                    else result = prev / value_in;
+                end        
+            endcase
+            prev = result;
+            if(result>9999 || result<-9999) overflow=1;
         end
-//        $monitor("state %b, A %d, S %d", state, A, S);
     end
-    alu alu(A, value_in, op, S, overflow); 
 
 endmodule

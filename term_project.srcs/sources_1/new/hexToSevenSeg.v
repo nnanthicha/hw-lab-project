@@ -50,7 +50,7 @@ module hexToSevenSeg(
           4'b1100 : segments = 7'b1000110;   // C
           4'b1101 : segments = 7'b0100001;   // d
           4'b1110 : segments = 7'b0000110;   // E
-          4'b1111 : segments = 7'b0001001;   // N
+          4'b1111 : segments = 7'b0111111;   // -
           default : segments = 7'b1000000;   // 0
       endcase
 endmodule

@@ -21,15 +21,15 @@
 
 
 module strToInt(
-    input [31:0] num_str,
-    output wire signed [31:0] num_int
+    input [39:0] num_str,
+    output signed [31:0] num_int
     );
-    wire [7:0] snum0, snum1, snum2, snum3;
+    wire [7:0] snum0, snum1, snum2, snum3, sign1;
     wire [3:0] inum0, inum1, inum2, inum3;
-    wire [31:0] val0, val1, val2, val3;
+    wire signed [3:0] sign2;
+    wire signed [31:0] val0, val1, val2, val3;
     
-    assign {snum3,snum2,snum1,snum0} = num_str;
-    
+    assign {sign1,snum3,snum2,snum1,snum0} = num_str;
     
     charToInt c0(snum0, inum0);
     charToInt c1(snum1, inum1);
@@ -40,8 +40,8 @@ module strToInt(
     assign val2 = inum2*100;
     assign val1 = inum1*10;
     assign val0 = inum0;
-    
-    assign num_int = val3+val2+val1+val0;
+    assign sign2 = (sign1==8'h2D) ? -1: 1;
+    assign num_int = (val3+val2+val1+val0)*sign2;
 
 endmodule
 
