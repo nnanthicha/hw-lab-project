@@ -238,4 +238,19 @@ module system(
     end
     quadSevenSeg q7seg(seg,dp,an0,an1,an2,an3,num0,num1,num2,num3,baud,dots);
     
+     // rgbCycle module
+    wire [11:0]rgb_cycle;
+    rgbModule(targetClk,rgb_cycle);
+    
+    // vga
+    wire video_on,p_tick;
+    wire [9:0] x, y;
+    
+    vga_control vga_control(clk,video_on,x, y,
+                num3,num2,num1,num0,
+                neg,overflow,rgb_cycle,
+                {vgaRed, vgaGreen, vgaBlue}
+    );
+    vga_sync vga_sync(clk, reset,Hsync, Vsync, video_on, p_tick,x, y);
+    
 endmodule
